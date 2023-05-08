@@ -1,0 +1,90 @@
+[gd_scene load_steps=13 format=3 uid="uid://qsfevvuub1n0"]
+
+[ext_resource type="Script" path="res://addons/dockable_container/drag_n_drop_panel.gd" id="1_d063o"]
+[ext_resource type="Script" path="res://addons/dockable_container/dockable_container.gd" id="1_tmly6"]
+[ext_resource type="Script" path="res://addons/dockable_container/layout_panel.gd" id="2_ru18e"]
+[ext_resource type="Script" path="res://addons/dockable_container/layout_split.gd" id="3_qpkye"]
+[ext_resource type="Script" path="res://addons/dockable_container/layout.gd" id="4_vau4i"]
+[ext_resource type="Script" path="res://scripts/MetasploitConnector.cs" id="6_1efve"]
+
+[sub_resource type="Resource" id="Resource_40iy1"]
+resource_name = "Tabs"
+script = ExtResource("2_ru18e")
+names = PackedStringArray("Modules")
+current_tab = 0
+
+[sub_resource type="Resource" id="Resource_vhbcx"]
+resource_name = "Tabs"
+script = ExtResource("2_ru18e")
+names = PackedStringArray("Targets")
+current_tab = 0
+
+[sub_resource type="Resource" id="Resource_bieqn"]
+resource_name = "Tabs"
+script = ExtResource("2_ru18e")
+names = PackedStringArray("Services", "Processes")
+current_tab = 1
+
+[sub_resource type="Resource" id="Resource_5rtdc"]
+resource_name = "Split"
+script = ExtResource("3_qpkye")
+direction = 1
+percent = 0.5
+first = SubResource("Resource_vhbcx")
+second = SubResource("Resource_bieqn")
+
+[sub_resource type="Resource" id="Resource_37cpf"]
+resource_name = "Split"
+script = ExtResource("3_qpkye")
+direction = 0
+percent = 0.260684
+first = SubResource("Resource_40iy1")
+second = SubResource("Resource_5rtdc")
+
+[sub_resource type="Resource" id="Resource_78gtw"]
+resource_name = "Layout"
+script = ExtResource("4_vau4i")
+root = SubResource("Resource_37cpf")
+hidden_tabs = {}
+
+[node name="VBoxContainer" type="VBoxContainer"]
+offset_right = 1920.0
+offset_bottom = 1080.0
+
+[node name="MenuBar" type="MenuBar" parent="."]
+layout_mode = 2
+
+[node name="File" type="PopupMenu" parent="MenuBar"]
+item_count = 2
+item_0/text = "Test"
+item_0/id = 0
+item_1/text = "Test2"
+item_1/id = 1
+
+[node name="Actions" type="PopupMenu" parent="MenuBar"]
+
+[node name="DockableContainer" type="Container" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+script = ExtResource("1_tmly6")
+layout = SubResource("Resource_78gtw")
+
+[node name="Targets" type="Control" parent="DockableContainer"]
+layout_mode = 2
+script = ExtResource("1_d063o")
+
+[node name="Modules" type="Control" parent="DockableContainer"]
+layout_mode = 2
+script = ExtResource("1_d063o")
+
+[node name="Services" type="Control" parent="DockableContainer"]
+visible = false
+layout_mode = 2
+script = ExtResource("1_d063o")
+
+[node name="Processes" type="Control" parent="DockableContainer"]
+layout_mode = 2
+script = ExtResource("1_d063o")
+
+[node name="Node" type="Node" parent="."]
+script = ExtResource("6_1efve")
