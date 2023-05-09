@@ -9,38 +9,20 @@
 
 using Godot;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using MessagePack;
 
 public partial class MetasploitConnector : Node
 {
-	private HttpClient _client = new();
-
 	private string _msfHost;
+	private int _msfPort;
 	private string _msfToken;
 
 	public void Init(string username, string password, string msfHost = "127.0.0.1", int msfPort = 55552)
 	{
-		_msfHost = "http://" + msfHost + "/api";
-
-		Error e = _client.ConnectToHost(msfHost, msfPort);
-		if (e != Error.Ok)
-		{
-			throw new Exception("Could not connect to Metasploit.");
-		}
-
-		while (_client.GetStatus() == HttpClient.Status.Connecting || _client.GetStatus() == HttpClient.Status.Resolving)
-        {
-            _client.Poll();
-            GD.Print("Connecting...");
-            OS.DelayMsec(500);
-        }
-
-		if (_client.GetStatus() != HttpClient.Status.Connected)
-		{
-			GD.PrintErr("Could not connect to Metasploit.");
-			throw new Exception("Could not connect to Metasploit.");
-		}
+		_msfHost = msfHost;
+		_msfPort = msfPort;
 
 		Dictionary<string, object> authResponse = this.Authenticate(username, password);
 
@@ -57,6 +39,8 @@ public partial class MetasploitConnector : Node
 			_msfToken = authResponse["token"] as string;
 		}
 		GD.Print("Connected!");
+
+		this.Test2();
 	}
 
 	private Dictionary<string, object> RPCCall(string method, params object[] args)
@@ -76,6 +60,27 @@ public partial class MetasploitConnector : Node
 			throw new Exception("Method is required.");
 		}
 
+		HttpClient client = new();
+
+		Error e = client.ConnectToHost(_msfHost, _msfPort);
+		if (e != Error.Ok)
+		{
+			throw new Exception("Could not connect to Metasploit.");
+		}
+
+		while (client.GetStatus() == HttpClient.Status.Connecting || client.GetStatus() == HttpClient.Status.Resolving)
+		{
+			client.Poll();
+			GD.Print("Connecting...");
+			OS.DelayMsec(500);
+		}
+
+		if (client.GetStatus() != HttpClient.Status.Connected)
+		{
+			GD.PrintErr("Could not connect to Metasploit.");
+			throw new Exception("Could not connect to Metasploit.");
+		}
+
 		List<object> message = new List<object> {method};
 
 		if (method != "auth.login")
@@ -87,6 +92,7 @@ public partial class MetasploitConnector : Node
 		{
 			message.Add(arg);
 		}
+		
 
 		byte[] messageBin = MessagePackSerializer.Serialize(message);
 
@@ -95,35 +101,35 @@ public partial class MetasploitConnector : Node
 
 		string[] headers = { "Content-Type: binary/message-pack" };
 
-		Error e = _client.RequestRaw(HttpClient.Method.Post, "/api", headers, messageBin);
+		e = client.RequestRaw(HttpClient.Method.Post, "/api", headers, messageBin);
 		
 		if (e != Error.Ok)
 		{
 			throw new Exception("Request failed to send.");
 		}
 
-		while (_client.GetStatus() == HttpClient.Status.Requesting)
+		while (client.GetStatus() == HttpClient.Status.Requesting)
 		{
-			_client.Poll();
+			client.Poll();
 			GD.Print("Requesting...");
 
 			OS.DelayMsec(500);
 		}
 
-		if (_client.GetStatus() != HttpClient.Status.Body && _client.GetStatus() != HttpClient.Status.Connected)
+		if (client.GetStatus() != HttpClient.Status.Body && client.GetStatus() != HttpClient.Status.Connected)
 		{
-			GD.Print(_client.GetStatus());
+			GD.Print(client.GetStatus());
 			throw new Exception("Request Failed");
 		}
 
-		if (_client.HasResponse())
+		if (client.HasResponse())
 		{
 			List<byte> responseBin = new();
 
-			while (_client.GetStatus() == HttpClient.Status.Body)
+			while (client.GetStatus() == HttpClient.Status.Body)
 			{
-				_client.Poll();
-				byte[] chunk = _client.ReadResponseBodyChunk();
+				client.Poll();
+				byte[] chunk = client.ReadResponseBodyChunk();
 				if (chunk.Length == 0)
 				{
 					OS.DelayMsec(500);
@@ -133,12 +139,17 @@ public partial class MetasploitConnector : Node
 					responseBin.AddRange(chunk);
 				}
 			}
+
+			client.Close();
+			
 			Dictionary<object, object> responseDict = MessagePackSerializer.Deserialize<Dictionary<object, object>>(responseBin.ToArray());
+			
+			ConvertDict(responseDict);
+
 			Dictionary<string, object> returnDict = new Dictionary<string, object>();
 
 			foreach (KeyValuePair<object, object> kvp in responseDict)
 			{
-				GD.Print((kvp.Key as byte[]).GetStringFromAscii());
 				returnDict.Add((kvp.Key as byte[]).GetStringFromAscii(), (kvp.Value as byte[]).GetStringFromAscii());
 			}
 
@@ -150,14 +161,45 @@ public partial class MetasploitConnector : Node
 		}
 	}
 
+	private Dictionary<string, object> ConvertDict(Dictionary<object, object> input)
+	{
+		Dictionary<string, object> converted = new();
+
+		foreach (KeyValuePair<object, object> kvp in input)
+		{
+			string key = (kvp.Key as byte[]).GetStringFromAscii();
+
+			object value = kvp.Value;
+
+			GD.Print(value.GetType());
+			GD.Print(value);
+		}
+	
+		return converted;
+	}
+
 	private Dictionary<string, object> Authenticate(string username, string password)
 	{
 		return this.RPCCall("auth.login", username, password);
 	}
 
+	private Dictionary<string, object> Test()
+	{
+		return this.RPCCall("modules.search", new Dictionary<string, object>() {
+			{ "include", new List<string>() { "exploits", "payloads"}},
+			{ "keywords", new List<string>() { "windows" }},
+			{ "maximum", 200 }
+		});
+	}
+
+	private Dictionary<string, object> Test2()
+	{
+		return this.RPCCall("core.version"	);
+	}
+
 	public void _on_button_pressed()
 	{
 		GD.Print("test");
-		this.Init("msf", "NxHK0Xju");
+		this.Init("msf", "h3ImCUrn");
 	}
 }
