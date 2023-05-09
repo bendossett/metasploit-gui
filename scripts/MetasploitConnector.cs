@@ -1,28 +1,163 @@
+/**
+*  Based largely on https://github.com/VolatileMindsLLC/metasploit-sharp/blob/master/metasploit-sharp/MetasploitSession.cs , with modifications.
+*  Also uses:
+* 		https://docs.godotengine.org/en/stable/tutorials/networking/http_client_class.html
+*
+*
+*/
+
+
 using Godot;
 using System;
+using System.Collections.Generic;
 using MessagePack;
 
 public partial class MetasploitConnector : Node
 {
 	private HttpClient _client = new();
 
-	public void Init(string msfHost = "127.0.0.1", int msfPort = 55552)
-	{
-		Error e = _client.ConnectToHost(msfHost, msfPort);
+	private string _msfHost;
+	private string _msfToken;
 
-		if (e != 0)
+	public void Init(string username, string password, string msfHost = "127.0.0.1", int msfPort = 55552)
+	{
+		_msfHost = "http://" + msfHost + "/api";
+
+		Error e = _client.ConnectToHost(msfHost, msfPort);
+		if (e != Error.Ok)
 		{
-			throw new Exception("Client was unable to connect.");
+			throw new Exception("Could not connect to Metasploit.");
 		}
+
+		while (_client.GetStatus() == HttpClient.Status.Connecting || _client.GetStatus() == HttpClient.Status.Resolving)
+        {
+            _client.Poll();
+            GD.Print("Connecting...");
+            OS.DelayMsec(500);
+        }
+
+		if (_client.GetStatus() != HttpClient.Status.Connected)
+		{
+			GD.PrintErr("Could not connect to Metasploit.");
+			throw new Exception("Could not connect to Metasploit.");
+		}
+
+		Dictionary<string, object> authResponse = this.Authenticate(username, password);
+
+		bool authenticated = !authResponse.ContainsKey("error");
+
+		if (!authenticated)
+		{
+			GD.PrintErr("Error authenticating with Metasploit");
+			throw new Exception("Error authenticating with Metasploit");
+		}
+
+		if ((authResponse["result"] as string) == "success")
+		{
+			_msfToken = authResponse["token"] as string;
+		}
+		GD.Print("Connected!");
 	}
 
-	private async void RPCCall(string method, params object[] args)
+	private Dictionary<string, object> RPCCall(string method, params object[] args)
 	{
+		if (String.IsNullOrEmpty(_msfHost))
+		{
+			throw new Exception("Host is required.");
+		}
+
+		if (method != "auth.login" && string.IsNullOrEmpty(_msfToken))
+		{
+			throw new Exception("Not authenticated");
+		}
+
 		if (String.IsNullOrEmpty(method))
 		{
 			throw new Exception("Method is required.");
 		}
 
+		List<object> message = new List<object> {method};
+
+		if (method != "auth.login")
+		{
+			message.Add(_msfToken);
+		}
+
+		foreach (object arg in args)
+		{
+			message.Add(arg);
+		}
+
+		byte[] messageBin = MessagePackSerializer.Serialize(message);
+
+		var json = MessagePackSerializer.ConvertToJson(messageBin);
+		GD.Print(json);
+
+		string[] headers = { "Content-Type: binary/message-pack" };
+
+		Error e = _client.RequestRaw(HttpClient.Method.Post, "/api", headers, messageBin);
 		
+		if (e != Error.Ok)
+		{
+			throw new Exception("Request failed to send.");
+		}
+
+		while (_client.GetStatus() == HttpClient.Status.Requesting)
+		{
+			_client.Poll();
+			GD.Print("Requesting...");
+
+			OS.DelayMsec(500);
+		}
+
+		if (_client.GetStatus() != HttpClient.Status.Body && _client.GetStatus() != HttpClient.Status.Connected)
+		{
+			GD.Print(_client.GetStatus());
+			throw new Exception("Request Failed");
+		}
+
+		if (_client.HasResponse())
+		{
+			List<byte> responseBin = new();
+
+			while (_client.GetStatus() == HttpClient.Status.Body)
+			{
+				_client.Poll();
+				byte[] chunk = _client.ReadResponseBodyChunk();
+				if (chunk.Length == 0)
+				{
+					OS.DelayMsec(500);
+				}
+				else
+				{
+					responseBin.AddRange(chunk);
+				}
+			}
+			Dictionary<object, object> responseDict = MessagePackSerializer.Deserialize<Dictionary<object, object>>(responseBin.ToArray());
+			Dictionary<string, object> returnDict = new Dictionary<string, object>();
+
+			foreach (KeyValuePair<object, object> kvp in responseDict)
+			{
+				GD.Print((kvp.Key as byte[]).GetStringFromAscii());
+				returnDict.Add((kvp.Key as byte[]).GetStringFromAscii(), (kvp.Value as byte[]).GetStringFromAscii());
+			}
+
+			return returnDict;
+		}
+		else
+		{
+			throw new Exception("Did not get response from Metasploit.");
+		}
+	}
+
+	private Dictionary<string, object> Authenticate(string username, string password)
+	{
+		return this.RPCCall("auth.login", username, password);
+	}
+
+	public void _on_button_pressed()
+	{
+		GD.Print("test");
+		this.Init("msf", "NxHK0Xju");
 	}
 }

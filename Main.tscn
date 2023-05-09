@@ -7,7 +7,7 @@
 [ext_resource type="Script" path="res://addons/dockable_container/layout.gd" id="4_vau4i"]
 [ext_resource type="Script" path="res://scripts/MetasploitConnector.cs" id="6_1efve"]
 
-[sub_resource type="Resource" id="Resource_40iy1"]
+[sub_resource type="Resource" id="Resource_5xmop"]
 resource_name = "Tabs"
 script = ExtResource("2_ru18e")
 names = PackedStringArray("Modules")
@@ -18,6 +18,14 @@ resource_name = "Tabs"
 script = ExtResource("2_ru18e")
 names = PackedStringArray("Targets")
 current_tab = 0
+
+[sub_resource type="Resource" id="Resource_du4a0"]
+resource_name = "Split"
+script = ExtResource("3_qpkye")
+direction = 0
+percent = 0.167808
+first = SubResource("Resource_5xmop")
+second = SubResource("Resource_vhbcx")
 
 [sub_resource type="Resource" id="Resource_bieqn"]
 resource_name = "Tabs"
@@ -30,21 +38,13 @@ resource_name = "Split"
 script = ExtResource("3_qpkye")
 direction = 1
 percent = 0.5
-first = SubResource("Resource_vhbcx")
+first = SubResource("Resource_du4a0")
 second = SubResource("Resource_bieqn")
-
-[sub_resource type="Resource" id="Resource_37cpf"]
-resource_name = "Split"
-script = ExtResource("3_qpkye")
-direction = 0
-percent = 0.260684
-first = SubResource("Resource_40iy1")
-second = SubResource("Resource_5rtdc")
 
 [sub_resource type="Resource" id="Resource_78gtw"]
 resource_name = "Layout"
 script = ExtResource("4_vau4i")
-root = SubResource("Resource_37cpf")
+root = SubResource("Resource_5rtdc")
 hidden_tabs = {}
 
 [node name="VBoxContainer" type="VBoxContainer"]
@@ -55,6 +55,7 @@ offset_bottom = 1080.0
 layout_mode = 2
 
 [node name="File" type="PopupMenu" parent="MenuBar"]
+content_scale_mode = 1
 item_count = 2
 item_0/text = "Test"
 item_0/id = 0
@@ -62,6 +63,7 @@ item_1/text = "Test2"
 item_1/id = 1
 
 [node name="Actions" type="PopupMenu" parent="MenuBar"]
+content_scale_mode = 1
 
 [node name="DockableContainer" type="Container" parent="."]
 layout_mode = 2
@@ -72,6 +74,12 @@ layout = SubResource("Resource_78gtw")
 [node name="Targets" type="Control" parent="DockableContainer"]
 layout_mode = 2
 script = ExtResource("1_d063o")
+
+[node name="Button" type="Button" parent="DockableContainer/Targets"]
+layout_mode = 0
+offset_right = 8.0
+offset_bottom = 8.0
+text = "Test"
 
 [node name="Modules" type="Control" parent="DockableContainer"]
 layout_mode = 2
@@ -86,5 +94,7 @@ script = ExtResource("1_d063o")
 layout_mode = 2
 script = ExtResource("1_d063o")
 
-[node name="Node" type="Node" parent="."]
+[node name="MetasploitConnector" type="Node" parent="."]
 script = ExtResource("6_1efve")
+
+[connection signal="pressed" from="DockableContainer/Targets/Button" to="MetasploitConnector" method="_on_button_pressed"]
