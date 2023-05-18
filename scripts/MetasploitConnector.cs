@@ -194,12 +194,12 @@ public partial class MetasploitConnector : Node
 
 	private Dictionary<string, object> Test2()
 	{
-		return this.RPCCall("core.version"	);
+		return this.RPCCall("module.exploits"	);
 	}
 
 	public void _on_button_pressed()
 	{
 		GD.Print("test");
-		this.Init("msf", "h3ImCUrn");
+		this.Init("msf", "3MRs4x6H");
 	}
 }
