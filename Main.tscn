@@ -47,14 +47,22 @@ script = ExtResource("4_vau4i")
 root = SubResource("Resource_5rtdc")
 hidden_tabs = {}
 
-[node name="VBoxContainer" type="VBoxContainer"]
+[node name="Panel" type="Panel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 0
 offset_right = 1920.0
 offset_bottom = 1080.0
 
-[node name="MenuBar" type="MenuBar" parent="."]
+[node name="MenuBar" type="MenuBar" parent="VBoxContainer"]
 layout_mode = 2
 
-[node name="File" type="PopupMenu" parent="MenuBar"]
+[node name="File" type="PopupMenu" parent="VBoxContainer/MenuBar"]
 content_scale_mode = 1
 item_count = 2
 item_0/text = "Test"
@@ -62,39 +70,31 @@ item_0/id = 0
 item_1/text = "Test2"
 item_1/id = 1
 
-[node name="Actions" type="PopupMenu" parent="MenuBar"]
+[node name="Actions" type="PopupMenu" parent="VBoxContainer/MenuBar"]
 content_scale_mode = 1
 
-[node name="DockableContainer" type="Container" parent="."]
+[node name="DockableContainer" type="Container" parent="VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 script = ExtResource("1_tmly6")
 layout = SubResource("Resource_78gtw")
 
-[node name="Targets" type="Control" parent="DockableContainer"]
+[node name="Targets" type="Control" parent="VBoxContainer/DockableContainer"]
 layout_mode = 2
 script = ExtResource("1_d063o")
 
-[node name="Button" type="Button" parent="DockableContainer/Targets"]
-layout_mode = 0
-offset_right = 8.0
-offset_bottom = 8.0
-text = "Test"
-
-[node name="Modules" type="Control" parent="DockableContainer"]
+[node name="Modules" type="Control" parent="VBoxContainer/DockableContainer"]
 layout_mode = 2
 script = ExtResource("1_d063o")
 
-[node name="Services" type="Control" parent="DockableContainer"]
+[node name="Services" type="Control" parent="VBoxContainer/DockableContainer"]
 visible = false
 layout_mode = 2
 script = ExtResource("1_d063o")
 
-[node name="Processes" type="Control" parent="DockableContainer"]
+[node name="Processes" type="Control" parent="VBoxContainer/DockableContainer"]
 layout_mode = 2
 script = ExtResource("1_d063o")
 
 [node name="MetasploitConnector" type="Node" parent="."]
 script = ExtResource("6_1efve")
-
-[connection signal="pressed" from="DockableContainer/Targets/Button" to="MetasploitConnector" method="_on_button_pressed"]

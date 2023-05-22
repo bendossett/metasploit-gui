@@ -11,20 +11,21 @@ using Godot;
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Diagnostics;
 using MessagePack;
 
 public partial class MetasploitConnector : Node
 {
-	private string _msfHost;
-	private int _msfPort;
-	private string _msfToken;
+	private static string _msfHost;
+	private static int _msfPort;
+	private static string _msfToken;
 
-	public void Init(string username, string password, string msfHost = "127.0.0.1", int msfPort = 55552)
+	public static void Connect(string username, string password, string msfHost = "127.0.0.1", int msfPort = 55553)
 	{
 		_msfHost = msfHost;
 		_msfPort = msfPort;
 
-		Dictionary<string, object> authResponse = this.Authenticate(username, password);
+		Dictionary<string, object> authResponse = Authenticate(username, password);
 
 		bool authenticated = !authResponse.ContainsKey("error");
 
@@ -39,11 +40,9 @@ public partial class MetasploitConnector : Node
 			_msfToken = authResponse["token"] as string;
 		}
 		GD.Print("Connected!");
-
-		this.Test2();
 	}
 
-	private Dictionary<string, object> RPCCall(string method, params object[] args)
+	public static Dictionary<string, object> RPCCall(string method, params object[] args)
 	{
 		if (String.IsNullOrEmpty(_msfHost))
 		{
@@ -93,7 +92,6 @@ public partial class MetasploitConnector : Node
 			message.Add(arg);
 		}
 		
-
 		byte[] messageBin = MessagePackSerializer.Serialize(message);
 
 		var json = MessagePackSerializer.ConvertToJson(messageBin);
@@ -144,16 +142,7 @@ public partial class MetasploitConnector : Node
 			
 			Dictionary<object, object> responseDict = MessagePackSerializer.Deserialize<Dictionary<object, object>>(responseBin.ToArray());
 			
-			ConvertDict(responseDict);
-
-			Dictionary<string, object> returnDict = new Dictionary<string, object>();
-
-			foreach (KeyValuePair<object, object> kvp in responseDict)
-			{
-				returnDict.Add((kvp.Key as byte[]).GetStringFromAscii(), (kvp.Value as byte[]).GetStringFromAscii());
-			}
-
-			return returnDict;
+			return ConvertDict(responseDict);
 		}
 		else
 		{
@@ -161,45 +150,39 @@ public partial class MetasploitConnector : Node
 		}
 	}
 
-	private Dictionary<string, object> ConvertDict(Dictionary<object, object> input)
+	private static Dictionary<string, object> ConvertDict(Dictionary<object, object> input)
 	{
 		Dictionary<string, object> converted = new();
-
-		foreach (KeyValuePair<object, object> kvp in input)
+		
+		foreach (var (key, value) in input)
 		{
-			string key = (kvp.Key as byte[]).GetStringFromAscii();
+			string keyString = key switch
+			{
+				byte[] b => b.GetStringFromAscii(),
+				string s => s,
+				_ => ""
+			};
 
-			object value = kvp.Value;
+			object valueObj = value switch
+			{
+				byte[] b => b.GetStringFromAscii(),
+				string s => s,
+				_ => null
+			};
 
-			GD.Print(value.GetType());
-			GD.Print(value);
+			if (valueObj == null)
+			{
+				GD.Print(value.GetType());
+			}
+
+			converted.Add(keyString, valueObj);
 		}
 	
 		return converted;
 	}
 
-	private Dictionary<string, object> Authenticate(string username, string password)
+	private static Dictionary<string, object> Authenticate(string username, string password)
 	{
-		return this.RPCCall("auth.login", username, password);
-	}
-
-	private Dictionary<string, object> Test()
-	{
-		return this.RPCCall("modules.search", new Dictionary<string, object>() {
-			{ "include", new List<string>() { "exploits", "payloads"}},
-			{ "keywords", new List<string>() { "windows" }},
-			{ "maximum", 200 }
-		});
-	}
-
-	private Dictionary<string, object> Test2()
-	{
-		return this.RPCCall("module.exploits"	);
-	}
-
-	public void _on_button_pressed()
-	{
-		GD.Print("test");
-		this.Init("msf", "3MRs4x6H");
+		return RPCCall("auth.login", username, password);
 	}
 }

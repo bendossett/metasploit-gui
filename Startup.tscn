@@ -1,0 +1,82 @@
+[gd_scene load_steps=2 format=3 uid="uid://7bop3awmb3ej"]
+
+[ext_resource type="Script" path="res://scripts/Startup.cs" id="1_oukrk"]
+
+[node name="Startup" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -246.0
+offset_top = -121.0
+offset_right = 246.0
+offset_bottom = 121.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="RichTextLabel" type="RichTextLabel" parent="VBoxContainer"]
+layout_mode = 2
+focus_mode = 2
+bbcode_enabled = true
+text = "[center]Please run the following command in a console:
+[code]msfrpcd -U msf -P msf -f -S false[/code]
+(You may change the username and password if you wish)
+[/center]"
+fit_content = true
+selection_enabled = true
+
+[node name="RichTextLabel2" type="RichTextLabel" parent="VBoxContainer"]
+layout_mode = 2
+bbcode_enabled = true
+text = "[center]Then, enter the username and password you used below and press [b]Start[/b][/center]"
+fit_content = true
+
+[node name="ErrorLabel" type="RichTextLabel" parent="VBoxContainer"]
+visible = false
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+
+[node name="UsernameBox" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="UsernameLabel" type="Label" parent="VBoxContainer/UsernameBox"]
+layout_mode = 2
+text = "Username: "
+
+[node name="UsernameInput" type="LineEdit" parent="VBoxContainer/UsernameBox"]
+layout_mode = 2
+text = "msf"
+
+[node name="PasswordBox" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="PasswordLabel" type="Label" parent="VBoxContainer/PasswordBox"]
+layout_mode = 2
+text = "Password: "
+
+[node name="PasswordInput" type="LineEdit" parent="VBoxContainer/PasswordBox"]
+layout_mode = 2
+text = "msf"
+
+[node name="StartButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+text = "Start"
+
+[node name="Startup" type="Node" parent="." node_paths=PackedStringArray("_errorLabel")]
+script = ExtResource("1_oukrk")
+_errorLabel = NodePath("../VBoxContainer/ErrorLabel")
+
+[connection signal="text_changed" from="VBoxContainer/UsernameBox/UsernameInput" to="Startup" method="UsernameChanged"]
+[connection signal="text_changed" from="VBoxContainer/PasswordBox/PasswordInput" to="Startup" method="PasswordChanged"]
+[connection signal="pressed" from="VBoxContainer/StartButton" to="Startup" method="OnStartButtonPressed"]
