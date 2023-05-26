@@ -167,7 +167,8 @@ public partial class MetasploitConnector : Node
 			{
 				byte[] b => b.GetStringFromAscii(),
 				string s => s,
-				_ => null
+				object[] => value,
+				_ => value
 			};
 
 			if (valueObj == null)

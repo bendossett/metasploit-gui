@@ -1,11 +1,13 @@
-[gd_scene load_steps=13 format=3 uid="uid://qsfevvuub1n0"]
+[gd_scene load_steps=15 format=3 uid="uid://qsfevvuub1n0"]
 
 [ext_resource type="Script" path="res://addons/dockable_container/drag_n_drop_panel.gd" id="1_d063o"]
 [ext_resource type="Script" path="res://addons/dockable_container/dockable_container.gd" id="1_tmly6"]
 [ext_resource type="Script" path="res://addons/dockable_container/layout_panel.gd" id="2_ru18e"]
 [ext_resource type="Script" path="res://addons/dockable_container/layout_split.gd" id="3_qpkye"]
 [ext_resource type="Script" path="res://addons/dockable_container/layout.gd" id="4_vau4i"]
+[ext_resource type="Script" path="res://scripts/Targets.cs" id="5_pyg4d"]
 [ext_resource type="Script" path="res://scripts/MetasploitConnector.cs" id="6_1efve"]
+[ext_resource type="Script" path="res://scripts/Modules.cs" id="6_m53vy"]
 
 [sub_resource type="Resource" id="Resource_5xmop"]
 resource_name = "Tabs"
@@ -81,11 +83,12 @@ layout = SubResource("Resource_78gtw")
 
 [node name="Targets" type="Control" parent="VBoxContainer/DockableContainer"]
 layout_mode = 2
-script = ExtResource("1_d063o")
+script = ExtResource("5_pyg4d")
 
-[node name="Modules" type="Control" parent="VBoxContainer/DockableContainer"]
+[node name="Modules" type="Control" parent="VBoxContainer/DockableContainer" node_paths=PackedStringArray("_tree")]
 layout_mode = 2
-script = ExtResource("1_d063o")
+script = ExtResource("6_m53vy")
+_tree = NodePath("Tree")
 
 [node name="Tree" type="Tree" parent="VBoxContainer/DockableContainer/Modules"]
 layout_mode = 1
