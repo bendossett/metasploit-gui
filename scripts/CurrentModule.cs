@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Godot;
 
@@ -58,50 +59,88 @@ public partial class CurrentModule : Control
 			//default
 
 			HBoxContainer optionBox = new HBoxContainer();
+			// optionBox.
 			optionBox.AddChild(optionName);
 			
 			GD.Print(option.Value["required"]);
 			GD.Print(((byte[])option.Value["desc"]).GetStringFromAscii());
 
 			string typeString = ((byte[])option.Value["type"]).GetStringFromAscii();
-			if (typeString == "bool")
+			switch (typeString)
 			{
-				CheckButton checkButton = new CheckButton();
-				checkButton.SetPressedNoSignal((bool)option.Value["default"]);
-				checkButton.Toggled += value =>
+				case "bool":
 				{
-					option.Value["value"] = value;
-				};
+					CheckButton checkButton = new CheckButton();
+					checkButton.SetPressedNoSignal((bool)option.Value["default"]);
+					checkButton.Toggled += value =>
+					{
+						option.Value["value"] = value;
+					};
 				
-				optionBox.AddChild(checkButton);
-			}
-			else if (typeString == "string")
-			{
-				LineEdit lineEdit = new LineEdit();
-				lineEdit.TextSubmitted += text =>
+					optionBox.AddChild(checkButton);
+					break;
+				}
+				case "string" or "path" or "rhosts" or "port":
 				{
-					option.Value["value"] = text.StripEdges().StripEscapes();
-				};
+					LineEdit lineEdit = new LineEdit();
+
+					if (option.Value.TryGetValue("default", out object defaultString))
+					{
+						lineEdit.Text = defaultString.ToString();
+					}
+					
+					lineEdit.TextSubmitted += text =>
+					{
+						option.Value["value"] = text.StripEdges().StripEscapes();
+					};
 				
-				optionBox.AddChild(lineEdit);
-			}
-			else if (typeString == "integer")
-			{
-				LineEdit lineEdit = new LineEdit();
-				lineEdit.TextSubmitted += text =>
+					optionBox.AddChild(lineEdit);
+					break;
+				}
+				case "integer":
 				{
-					option.Value["value"] = int.Parse(text);
-				};
+					LineEdit lineEdit = new LineEdit();
+					
+					if (option.Value.TryGetValue("default", out object defaultInt))
+					{
+						GD.Print(defaultInt.GetType());
+						lineEdit.Text = defaultInt is byte ? defaultInt.ToString() : ((int)defaultInt).ToString();
+					}
+					
+					lineEdit.TextSubmitted += text =>
+					{
+						option.Value["value"] = int.Parse(text);
+					};
 				
-				optionBox.AddChild(lineEdit);
-			}
-			else if (typeString == "path")
-			{
-				// ????
-			}
-			else
-			{
-				GD.PrintErr("Unknown typeString " + typeString);
+					optionBox.AddChild(lineEdit);
+					break;
+				}
+				case "float":
+				{
+					LineEdit lineEdit = new LineEdit();
+					
+					if (option.Value.TryGetValue("default", out object defaultFloat))
+					{
+						lineEdit.Text = ((float)defaultFloat).ToString(CultureInfo.CurrentCulture);
+					}
+					
+					lineEdit.TextSubmitted += text =>
+					{
+						option.Value["value"] = float.Parse(text);
+					};
+				
+					optionBox.AddChild(lineEdit);
+					break;
+				}
+				case "enum":
+					if (option.Value.TryGetValue("default", out object defaultValue))
+					{
+						GD.Print(defaultValue);
+					}
+					break;
+				default:
+					GD.PrintErr("Unknown typeString " + typeString);
+					break;
 			}
 			
 			if ((bool)option.Value["advanced"] || option.Key.StartsWith("HTTP"))
