@@ -28,7 +28,7 @@ public partial class Startup : Node
 	}
 
 
-	public void OnStartButtonPressed()
+	public async void OnStartButtonPressed()
 	{
 		if (string.IsNullOrEmpty(_username) || string.IsNullOrEmpty(_password))
 		{
@@ -42,7 +42,7 @@ public partial class Startup : Node
 
 		try
 		{
-			MetasploitConnector.Connect(escapedUsername, escapedPassword);
+			await MetasploitConnector.Connect(escapedUsername, escapedPassword);
 
 			GetTree().ChangeSceneToFile("res://Main.tscn");
 		}

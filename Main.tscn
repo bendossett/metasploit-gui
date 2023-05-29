@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://qsfevvuub1n0"]
+[gd_scene load_steps=17 format=3 uid="uid://qsfevvuub1n0"]
 
 [ext_resource type="Script" path="res://addons/dockable_container/drag_n_drop_panel.gd" id="1_d063o"]
 [ext_resource type="Script" path="res://addons/dockable_container/dockable_container.gd" id="1_tmly6"]
@@ -8,6 +8,8 @@
 [ext_resource type="Script" path="res://scripts/Targets.cs" id="5_pyg4d"]
 [ext_resource type="Script" path="res://scripts/MetasploitConnector.cs" id="6_1efve"]
 [ext_resource type="Script" path="res://scripts/Modules.cs" id="6_m53vy"]
+[ext_resource type="Script" path="res://scripts/CurrentModule.cs" id="8_xlaot"]
+[ext_resource type="Script" path="res://scripts/MetasploitAPI.cs" id="10_52kny"]
 
 [sub_resource type="Resource" id="Resource_5xmop"]
 resource_name = "Tabs"
@@ -18,7 +20,7 @@ current_tab = 0
 [sub_resource type="Resource" id="Resource_vhbcx"]
 resource_name = "Tabs"
 script = ExtResource("2_ru18e")
-names = PackedStringArray("Targets")
+names = PackedStringArray("Current Module", "Targets")
 current_tab = 0
 
 [sub_resource type="Resource" id="Resource_du4a0"]
@@ -82,12 +84,14 @@ script = ExtResource("1_tmly6")
 layout = SubResource("Resource_78gtw")
 
 [node name="Targets" type="Control" parent="VBoxContainer/DockableContainer"]
+visible = false
 layout_mode = 2
 script = ExtResource("5_pyg4d")
 
-[node name="Modules" type="Control" parent="VBoxContainer/DockableContainer" node_paths=PackedStringArray("_tree")]
+[node name="Modules" type="Control" parent="VBoxContainer/DockableContainer" node_paths=PackedStringArray("_currentModulePanel", "_tree")]
 layout_mode = 2
 script = ExtResource("6_m53vy")
+_currentModulePanel = NodePath("../Current Module")
 _tree = NodePath("Tree")
 
 [node name="Tree" type="Tree" parent="VBoxContainer/DockableContainer/Modules"]
@@ -97,6 +101,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+hide_root = true
+metadata/FullPath = ""
 
 [node name="Services" type="Control" parent="VBoxContainer/DockableContainer"]
 visible = false
@@ -107,5 +113,53 @@ script = ExtResource("1_d063o")
 layout_mode = 2
 script = ExtResource("1_d063o")
 
+[node name="Current Module" type="Control" parent="VBoxContainer/DockableContainer" node_paths=PackedStringArray("_moduleName", "_moduleDesc", "_options", "_advancedOptions")]
+layout_mode = 2
+script = ExtResource("8_xlaot")
+_moduleName = NodePath("MarginContainer/VBoxContainer/ModuleName")
+_moduleDesc = NodePath("MarginContainer/VBoxContainer/ModuleDescription")
+_options = NodePath("MarginContainer/VBoxContainer/ScrollContainer/Options/NormalOptions")
+_advancedOptions = NodePath("MarginContainer/VBoxContainer/ScrollContainer/Options/AdvancedOptions")
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/DockableContainer/Current Module"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/DockableContainer/Current Module/MarginContainer"]
+layout_mode = 2
+
+[node name="ModuleName" type="Label" parent="VBoxContainer/DockableContainer/Current Module/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ModuleDescription" type="Label" parent="VBoxContainer/DockableContainer/Current Module/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer/DockableContainer/Current Module/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Options" type="VBoxContainer" parent="VBoxContainer/DockableContainer/Current Module/MarginContainer/VBoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="NormalOptions" type="VBoxContainer" parent="VBoxContainer/DockableContainer/Current Module/MarginContainer/VBoxContainer/ScrollContainer/Options"]
+layout_mode = 2
+
+[node name="AdvancedOptions" type="VBoxContainer" parent="VBoxContainer/DockableContainer/Current Module/MarginContainer/VBoxContainer/ScrollContainer/Options"]
+visible = false
+layout_mode = 2
+
 [node name="MetasploitConnector" type="Node" parent="."]
 script = ExtResource("6_1efve")
+
+[node name="MetasploitAPI" type="Node" parent="."]
+script = ExtResource("10_52kny")
