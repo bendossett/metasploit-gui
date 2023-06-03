@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -14,6 +15,8 @@ public partial class CurrentModule : Control
 
 	[Export] private VBoxContainer _options;
 	[Export] private VBoxContainer _advancedOptions;
+
+	[Export] private OptionButton _payloads;
 	
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -35,6 +38,10 @@ public partial class CurrentModule : Control
 		_moduleDesc.Text = _currentModule.Description;
 		
 		PopulateOptions();
+
+		Dictionary<string, object> compatiblePayloads = await MetasploitAPI.Module.GetCompatiblePayloads(_currentModule.FullName);
+		
+		PopulatePayloads(compatiblePayloads);
 	}
 
 	private void PopulateOptions()
@@ -151,6 +158,49 @@ public partial class CurrentModule : Control
 			{
 				_options.AddChild(optionBox);
 			}
+		}
+	}
+
+	private void PopulatePayloads(Dictionary<string, object> compatiblePayloads)
+	{
+		if (compatiblePayloads.ContainsKey("error"))
+		{
+			GD.PrintErr("Error getting payloads");
+			return;
+		}
+		
+		object[] payloadObjects = (object[])compatiblePayloads["payloads"];
+		
+		string[] payloads = Array.ConvertAll(payloadObjects, x => x.ToString());
+		
+		foreach (string payload in payloads)
+		{
+			_payloads.AddItem(payload);
+		}
+	}
+
+	public async void Execute()
+	{
+
+		Dictionary<string, object> executionOptions = new Dictionary<string, object>();
+
+		foreach (KeyValuePair<string,Dictionary<string,object>> moduleOption in _currentModule.Options)
+		{
+			string key = moduleOption.Key;
+
+			object value = moduleOption.Value["value"];
+
+			if (value != null)
+			{
+				executionOptions.Add(key, value);
+			}
+		}
+
+		Dictionary<string, object> executionResponse = await MetasploitAPI.Module.Execute(_currentModule.Type, _currentModule.FullName, executionOptions);
+
+		foreach (string key in executionResponse.Keys)
+		{
+			GD.Print(key);
 		}
 	}
 

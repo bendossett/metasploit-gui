@@ -66,6 +66,15 @@ public partial class MetasploitConnector : Node
 		HttpRequest httpRequest = new HttpRequest();
 		((SceneTree)Engine.GetMainLoop()).Root.AddChild(httpRequest);
 
+		// TaskCompletionSource httpReady = new TaskCompletionSource();
+		//
+		// httpRequest.Ready += () =>
+		// {
+		// 	httpReady.SetResult();
+		// };
+
+		// await httpReady.Task;
+
 		TaskCompletionSource<Dictionary<string, object>> tcs = new TaskCompletionSource<Dictionary<string, object>>();
 
 		httpRequest.RequestCompleted += ((result, code, headers, body) =>

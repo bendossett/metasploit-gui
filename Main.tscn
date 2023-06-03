@@ -113,13 +113,14 @@ script = ExtResource("1_d063o")
 layout_mode = 2
 script = ExtResource("1_d063o")
 
-[node name="Current Module" type="Control" parent="VBoxContainer/DockableContainer" node_paths=PackedStringArray("_moduleName", "_moduleDesc", "_options", "_advancedOptions")]
+[node name="Current Module" type="Control" parent="VBoxContainer/DockableContainer" node_paths=PackedStringArray("_moduleName", "_moduleDesc", "_options", "_advancedOptions", "_payloads")]
 layout_mode = 2
 script = ExtResource("8_xlaot")
 _moduleName = NodePath("MarginContainer/VBoxContainer/ModuleName")
 _moduleDesc = NodePath("MarginContainer/VBoxContainer/ModuleDescription")
 _options = NodePath("MarginContainer/VBoxContainer/ScrollContainer/Options/NormalOptions")
 _advancedOptions = NodePath("MarginContainer/VBoxContainer/ScrollContainer/Options/AdvancedOptions")
+_payloads = NodePath("MarginContainer/VBoxContainer/HBoxContainer/Payloads")
 
 [node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/DockableContainer/Current Module"]
 layout_mode = 1
@@ -135,6 +136,7 @@ theme_override_constants/margin_bottom = 20
 
 [node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/DockableContainer/Current Module/MarginContainer"]
 layout_mode = 2
+theme_override_constants/separation = 15
 
 [node name="ModuleName" type="Label" parent="VBoxContainer/DockableContainer/Current Module/MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -158,8 +160,28 @@ layout_mode = 2
 visible = false
 layout_mode = 2
 
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/DockableContainer/Current Module/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 30
+
+[node name="Label" type="Label" parent="VBoxContainer/DockableContainer/Current Module/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Payload"
+
+[node name="Payloads" type="OptionButton" parent="VBoxContainer/DockableContainer/Current Module/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="Button" type="Button" parent="VBoxContainer/DockableContainer/Current Module/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Exploit"
+
 [node name="MetasploitConnector" type="Node" parent="."]
 script = ExtResource("6_1efve")
 
 [node name="MetasploitAPI" type="Node" parent="."]
 script = ExtResource("10_52kny")
+
+[connection signal="pressed" from="VBoxContainer/DockableContainer/Current Module/MarginContainer/VBoxContainer/Button" to="VBoxContainer/DockableContainer/Current Module" method="Execute"]

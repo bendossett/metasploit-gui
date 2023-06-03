@@ -10,6 +10,7 @@ public partial class Startup : Node
 	
 	public override void _Ready()
 	{
+		CallDeferred("TryInitialConnect");
 	}
 	
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -27,6 +28,19 @@ public partial class Startup : Node
 		_password = newPassword;
 	}
 
+	private async void TryInitialConnect()
+	{
+		try
+		{
+			await MetasploitConnector.Connect("msf", "msf");
+			
+			GetTree().ChangeSceneToFile("res://Main.tscn");
+		}
+		catch (Exception e)
+		{
+			GD.PrintErr(e.Message);
+		}
+	}
 
 	public async void OnStartButtonPressed()
 	{
