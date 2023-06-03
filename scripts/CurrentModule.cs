@@ -46,39 +46,21 @@ public partial class CurrentModule : Control
 
 	private void PopulateOptions()
 	{
-		foreach (KeyValuePair<string, Dictionary<string, object>> option in _currentModule.Options)
+		foreach (var option in _currentModule.Options)
 		{
 			Label optionName = new Label();
-			optionName.Text = option.Key;
-
-			foreach (KeyValuePair<string,object> o in option.Value)
-			{
-				GD.Print(o.Key);
-				GD.Print(o.Value);
-				GD.Print("");
-			}
-			
-			//type
-			//required
-			//advanced
-			//evasion
-			//desc
-			//default
+			optionName.Text = option.Name;
 
 			HBoxContainer optionBox = new HBoxContainer();
 			// optionBox.
 			optionBox.AddChild(optionName);
 			
-			GD.Print(option.Value["required"]);
-			GD.Print(((byte[])option.Value["desc"]).GetStringFromAscii());
-
-			string typeString = ((byte[])option.Value["type"]).GetStringFromAscii();
-			switch (typeString)
+			switch (option.Type)
 			{
 				case "bool":
 				{
 					CheckButton checkButton = new CheckButton();
-					checkButton.SetPressedNoSignal((bool)option.Value["default"]);
+					checkButton.SetPressedNoSignal(option.);
 					checkButton.Toggled += value =>
 					{
 						option.Value["value"] = value;
@@ -168,6 +150,8 @@ public partial class CurrentModule : Control
 			GD.PrintErr("Error getting payloads");
 			return;
 		}
+		
+		_payloads.Clear();
 		
 		object[] payloadObjects = (object[])compatiblePayloads["payloads"];
 		

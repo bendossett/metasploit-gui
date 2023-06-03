@@ -51,17 +51,17 @@ script = ExtResource("4_vau4i")
 root = SubResource("Resource_5rtdc")
 hidden_tabs = {}
 
-[node name="Panel" type="Panel"]
+[node name="MarginContainer" type="MarginContainer"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
-layout_mode = 0
-offset_right = 1920.0
-offset_bottom = 1080.0
+layout_mode = 2
 
 [node name="MenuBar" type="MenuBar" parent="VBoxContainer"]
 layout_mode = 2
@@ -176,6 +176,7 @@ size_flags_horizontal = 4
 [node name="Button" type="Button" parent="VBoxContainer/DockableContainer/Current Module/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 4
+disabled = true
 text = "Exploit"
 
 [node name="MetasploitConnector" type="Node" parent="."]

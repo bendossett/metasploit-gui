@@ -80,6 +80,7 @@ public partial class Modules : Node
 				treeItemQ.Enqueue(newItem);
 			}
 		}
+		modulesItem.SetCollapsedRecursive(true);
 	}
 
 	private void ItemActivated()
