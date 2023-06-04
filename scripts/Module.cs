@@ -24,9 +24,9 @@ public class Module
     public Dictionary<byte, string> Targets { get; private set; }
     public byte DefaultTarget { get; private set; }
     public string Stance { get; private set; }
-    public List<AOption> Options { get; private set; }
+    public Dictionary<string, IOption> Options { get; private set; }
 
-    public abstract class AOption
+    public abstract class IOption
     {
         public string Name { get; internal set; }
         public string Type { get; internal set;  }
@@ -34,14 +34,25 @@ public class Module
         public bool Advanced { get; internal set;  }
         public bool Evasion { get; internal set;  }
         public string Desc { get; internal set;  }
-        
-        
     }
-    public class Option<T> : AOption
+    public class Option<T> : IOption
     {
+        public bool HasDefault { get; internal set; }
         public T DefaultValue { get; private set; }
         public T Value { get; set; }
-        
+
+        public Option(string name, string type, bool required, bool advanced, bool evasion, string desc)
+        {
+            Name = name;
+            Type = type;
+            Required = required;
+            Advanced = advanced;
+            Evasion = evasion;
+            Desc = desc;
+            HasDefault = false;
+            DefaultValue = default;
+            Value = default;
+        }
         public Option(string name, string type, bool required, bool advanced, bool evasion, string desc, T defaultValue = default, T value = default)
         {
             Name = name;
@@ -50,6 +61,7 @@ public class Module
             Advanced = advanced;
             Evasion = evasion;
             Desc = desc;
+            HasDefault = true;
             DefaultValue = defaultValue;
             Value = value;
         }
@@ -119,7 +131,7 @@ public class Module
 
         if (moduleOptions == null) return;
         
-        Options = new List<AOption>();
+        Options = new Dictionary<string, IOption>();
 
         foreach (KeyValuePair<string, object> kvp in moduleOptions)
         {
@@ -130,17 +142,25 @@ public class Module
             Dictionary<string, object> subOptions =
                 subOptionsObj.ToDictionary(o => ((byte[])o.Key).GetStringFromAscii(), o => o.Value);
 
-            AOption option;
+            IOption option;
 
             string typeString = null;
             bool required = false;
             bool advanced = false;
             bool evasion = false;
             string desc = null;
+            bool hasDefault = false;
             object defaultValue = null;
 
-            if (subOptions.TryGetValue("type", out var typeObj) && typeObj is string typeValue)
-                typeString = typeValue;
+            if (subOptions.TryGetValue("type", out var typeObj))
+            {
+                typeString = typeObj switch
+                {
+                    string typeStr => typeStr,
+                    byte[] typeBytes => typeBytes.GetStringFromAscii(),
+                    _ => typeString
+                };
+            }
 
             if (subOptions.TryGetValue("required", out var requiredObj) && requiredObj is bool requiredValue)
                 required = requiredValue;
@@ -151,52 +171,96 @@ public class Module
             if (subOptions.TryGetValue("evasion", out var evasionObj) && evasionObj is bool evasionValue)
                 evasion = evasionValue;
 
-            if (subOptions.TryGetValue("desc", out var descObj) && descObj is string descValue)
-                desc = descValue;
+            if (subOptions.TryGetValue("desc", out var descObj))
+            {
+                desc = descObj switch
+                {
+                    string descStr => descStr,
+                    byte[] descBytes => descBytes.GetStringFromAscii(),
+                    _ => desc
+                };
+            }
 
             if (subOptions.TryGetValue("default", out var defaultObj))
+            {
                 defaultValue = defaultObj;
+                hasDefault = true;
+            }
+            else
+            {
+                hasDefault = false;
+            }
             
-            switch (subOptions["type"])
+            switch (typeString)
             {
                 case "bool":
                 {
-                    option = new Option<bool>(key, typeString, required, advanced, evasion, desc, (bool)defaultValue, (bool)defaultValue);
+                    if (hasDefault)
+                    {
+                        option = new Option<bool>(key, typeString, required, advanced, evasion, desc, (bool)defaultValue,
+                            (bool)defaultValue);
+                    }
+                    else
+                    {
+                        option = new Option<bool>(key, typeString, required, advanced, evasion, desc);
+                    }
                     break;
                 }
                 case "string" or "path" or "rhosts" or "port":
                 {
-                    option = new Option<string>(key, typeString, required, advanced, evasion, desc,
-                        defaultValue as string, defaultValue as string);
+                    if (hasDefault)
+                    {
+                        option = new Option<string>(key, typeString, required, advanced, evasion, desc, defaultValue as string,
+                            defaultValue as string);
+                    }
+                    else
+                    {
+                        option = new Option<string>(key, typeString, required, advanced, evasion, desc);
+                    }
                     break;
                 }
                 case "integer":
                 {
-                    option = new Option<int>(key, typeString, required, advanced, evasion, desc, (int)defaultValue,
-                        (int)defaultValue);
+                    if (hasDefault)
+                    {
+                        option = new Option<int>(key, typeString, required, advanced, evasion, desc, Convert.ToInt32(defaultValue),
+                            Convert.ToInt32(defaultValue));
+                    }
+                    else
+                    {
+                        option = new Option<int>(key, typeString, required, advanced, evasion, desc);
+                    }
                     break;
                 }
                 case "float":
                 {
-                    option = new Option<float>(key, typeString, required, advanced, evasion, desc, (float)defaultValue,
-                        (float)defaultValue);
+                    if (hasDefault)
+                    {
+                        option = new Option<float>(key, typeString, required, advanced, evasion, desc, (float)defaultValue,
+                            (float)defaultValue);
+                    }
+                    else
+                    {
+                        option = new Option<float>(key, typeString, required, advanced, evasion, desc);
+                    }
+                    
                     break;
                 }
                 case "enum":
                     GD.Print("typestring was enum");
                     option = null;
-                    foreach (string s in subOptions.Keys)
+                    foreach (object o in (object[])subOptions["enums"])
                     {
-                        GD.Print(s);
+                        GD.Print(o.GetType());
                     }
                     break;
                 default:
                     option = null;
-                    GD.PrintErr("Unknown typeString " + subOptions["type"]);
+                    GD.PrintErr("Unknown typeString " + ((byte[])subOptions["type"]).GetStringFromAscii());
                     break;
             }
             
-            Options.Add(option);
+            Options.Add(key, option);
         }
     }
 }

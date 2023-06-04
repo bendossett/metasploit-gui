@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 public partial class MetasploitAPI : Node
 {
 	
-	public class Core
+	public static class Core
 	{
 		public static async Task<Dictionary<string, object>> GetModuleStats()
 		{
@@ -59,7 +59,7 @@ public partial class MetasploitAPI : Node
 		}
 	}
 
-	public class Console
+	public static class Console
 	{
 		public static async Task<Dictionary<string, object>> Create()
 		{
@@ -102,7 +102,7 @@ public partial class MetasploitAPI : Node
 		}
 	}
 
-	public class Job
+	public static class Job
 	{
 		public static async Task<Dictionary<string, object>> List()
 		{
@@ -120,7 +120,7 @@ public partial class MetasploitAPI : Node
 		}
 	}
 
-	public class Module
+	public static class Module
 	{
 		public static async Task<Dictionary<string, object>> GetExploitModules()
 		{
@@ -188,7 +188,7 @@ public partial class MetasploitAPI : Node
 		}
 	}
 
-	public class Plugin
+	public static class Plugin
 	{
 		public static async Task<Dictionary<string, object>> Load(string pluginName, Dictionary<string, object> options)
 		{
@@ -206,7 +206,7 @@ public partial class MetasploitAPI : Node
 		}
 	}
 
-	public class Session
+	public static class Session
 	{
 		public static async Task<Dictionary<string, object>> List()
 		{

@@ -16,7 +16,8 @@ public partial class CurrentModule : Control
 	[Export] private VBoxContainer _options;
 	[Export] private VBoxContainer _advancedOptions;
 
-	[Export] private OptionButton _payloads;
+	[Export] private OptionButton _payloadOptionButton;
+	private string[] _payloads;
 	
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
@@ -49,90 +50,72 @@ public partial class CurrentModule : Control
 		foreach (var option in _currentModule.Options)
 		{
 			Label optionName = new Label();
-			optionName.Text = option.Name;
+			optionName.Text = option.Value.Name;
 
 			HBoxContainer optionBox = new HBoxContainer();
 			// optionBox.
 			optionBox.AddChild(optionName);
-			
-			switch (option.Type)
+
+			switch (option.Value)
 			{
-				case "bool":
+				case Module.Option<bool> o:
 				{
 					CheckButton checkButton = new CheckButton();
-					checkButton.SetPressedNoSignal(option.);
-					checkButton.Toggled += value =>
-					{
-						option.Value["value"] = value;
-					};
-				
+					
+					if (o.HasDefault)
+						checkButton.SetPressedNoSignal(o.DefaultValue);
+					
+					checkButton.Toggled += value => { o.Value = value; };
+
 					optionBox.AddChild(checkButton);
 					break;
 				}
-				case "string" or "path" or "rhosts" or "port":
+				case Module.Option<string> o:
 				{
 					LineEdit lineEdit = new LineEdit();
 
-					if (option.Value.TryGetValue("default", out object defaultString))
-					{
-						lineEdit.Text = defaultString.ToString();
-					}
-					
-					lineEdit.TextSubmitted += text =>
-					{
-						option.Value["value"] = text.StripEdges().StripEscapes();
-					};
-				
+					if (o.HasDefault)
+						lineEdit.Text = o.DefaultValue;
+
+					lineEdit.TextSubmitted += text => { o.Value = text.StripEdges().StripEscapes(); };
+
 					optionBox.AddChild(lineEdit);
 					break;
 				}
-				case "integer":
+				case Module.Option<int> o:
 				{
 					LineEdit lineEdit = new LineEdit();
-					
-					if (option.Value.TryGetValue("default", out object defaultInt))
-					{
-						GD.Print(defaultInt.GetType());
-						lineEdit.Text = defaultInt is byte ? defaultInt.ToString() : ((int)defaultInt).ToString();
-					}
-					
+
+					if (o.HasDefault)
+						lineEdit.Text = o.DefaultValue.ToString();
+
 					lineEdit.TextSubmitted += text =>
-					{
-						option.Value["value"] = int.Parse(text);
-					};
+						o.Value = int.Parse(text);
 				
 					optionBox.AddChild(lineEdit);
 					break;
 				}
-				case "float":
+				case Module.Option<float> o:
 				{
 					LineEdit lineEdit = new LineEdit();
-					
-					if (option.Value.TryGetValue("default", out object defaultFloat))
-					{
-						lineEdit.Text = ((float)defaultFloat).ToString(CultureInfo.CurrentCulture);
-					}
+
+					if (o.HasDefault)
+						lineEdit.Text = o.DefaultValue.ToString(CultureInfo.InvariantCulture);
 					
 					lineEdit.TextSubmitted += text =>
 					{
-						option.Value["value"] = float.Parse(text);
+						o.Value = float.Parse(text);
 					};
 				
 					optionBox.AddChild(lineEdit);
 					break;
 				}
-				case "enum":
-					if (option.Value.TryGetValue("default", out object defaultValue))
-					{
-						GD.Print(defaultValue);
-					}
-					break;
 				default:
-					GD.PrintErr("Unknown typeString " + typeString);
+					GD.PrintErr("Was not a known Option Type");
 					break;
 			}
-			
-			if ((bool)option.Value["advanced"] || option.Key.StartsWith("HTTP"))
+
+			if ((bool)option.Value.Advanced || option.Key.StartsWith("HTTP"))
 			{
 				_advancedOptions.AddChild(optionBox);	
 			}
@@ -151,15 +134,15 @@ public partial class CurrentModule : Control
 			return;
 		}
 		
-		_payloads.Clear();
+		_payloadOptionButton.Clear();
 		
 		object[] payloadObjects = (object[])compatiblePayloads["payloads"];
 		
-		string[] payloads = Array.ConvertAll(payloadObjects, x => x.ToString());
+		_payloads = Array.ConvertAll(payloadObjects, x => x.ToString());
 		
-		foreach (string payload in payloads)
+		foreach (string payload in _payloads)
 		{
-			_payloads.AddItem(payload);
+			_payloadOptionButton.AddItem(payload);
 		}
 	}
 
@@ -168,17 +151,26 @@ public partial class CurrentModule : Control
 
 		Dictionary<string, object> executionOptions = new Dictionary<string, object>();
 
-		foreach (KeyValuePair<string,Dictionary<string,object>> moduleOption in _currentModule.Options)
+		foreach (Module.IOption moduleOption in _currentModule.Options.Values)
 		{
-			string key = moduleOption.Key;
+			string key = moduleOption.Name;
 
-			object value = moduleOption.Value["value"];
+			object value = moduleOption switch
+			{
+				Module.Option<bool> o => o.Value,
+				Module.Option<string> o => o.Value,
+				Module.Option<int> o => o.Value,
+				Module.Option<float> o => o.Value,
+				_ => null
+			};
 
 			if (value != null)
 			{
 				executionOptions.Add(key, value);
 			}
 		}
+		
+		executionOptions.Add("payload", _payloads[_payloadOptionButton.GetSelectedId()]);
 
 		Dictionary<string, object> executionResponse = await MetasploitAPI.Module.Execute(_currentModule.Type, _currentModule.FullName, executionOptions);
 

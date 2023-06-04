@@ -92,17 +92,33 @@ script = ExtResource("5_pyg4d")
 layout_mode = 2
 script = ExtResource("6_m53vy")
 _currentModulePanel = NodePath("../Current Module")
-_tree = NodePath("Tree")
+_tree = NodePath("VBoxContainer/Tree")
 
-[node name="Tree" type="Tree" parent="VBoxContainer/DockableContainer/Modules"]
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/DockableContainer/Modules"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="Tree" type="Tree" parent="VBoxContainer/DockableContainer/Modules/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
 hide_root = true
 metadata/FullPath = ""
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/DockableContainer/Modules/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/DockableContainer/Modules/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Search"
+
+[node name="LineEdit" type="LineEdit" parent="VBoxContainer/DockableContainer/Modules/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 8
 
 [node name="Services" type="Control" parent="VBoxContainer/DockableContainer"]
 visible = false
@@ -113,14 +129,13 @@ script = ExtResource("1_d063o")
 layout_mode = 2
 script = ExtResource("1_d063o")
 
-[node name="Current Module" type="Control" parent="VBoxContainer/DockableContainer" node_paths=PackedStringArray("_moduleName", "_moduleDesc", "_options", "_advancedOptions", "_payloads")]
+[node name="Current Module" type="Control" parent="VBoxContainer/DockableContainer" node_paths=PackedStringArray("_moduleName", "_moduleDesc", "_options", "_advancedOptions")]
 layout_mode = 2
 script = ExtResource("8_xlaot")
 _moduleName = NodePath("MarginContainer/VBoxContainer/ModuleName")
 _moduleDesc = NodePath("MarginContainer/VBoxContainer/ModuleDescription")
 _options = NodePath("MarginContainer/VBoxContainer/ScrollContainer/Options/NormalOptions")
 _advancedOptions = NodePath("MarginContainer/VBoxContainer/ScrollContainer/Options/AdvancedOptions")
-_payloads = NodePath("MarginContainer/VBoxContainer/HBoxContainer/Payloads")
 
 [node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/DockableContainer/Current Module"]
 layout_mode = 1
@@ -185,4 +200,5 @@ script = ExtResource("6_1efve")
 [node name="MetasploitAPI" type="Node" parent="."]
 script = ExtResource("10_52kny")
 
+[connection signal="text_changed" from="VBoxContainer/DockableContainer/Modules/VBoxContainer/HBoxContainer/LineEdit" to="VBoxContainer/DockableContainer/Modules" method="Search"]
 [connection signal="pressed" from="VBoxContainer/DockableContainer/Current Module/MarginContainer/VBoxContainer/Button" to="VBoxContainer/DockableContainer/Current Module" method="Execute"]
