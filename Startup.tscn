@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://7bop3awmb3ej"]
 
-[ext_resource type="Script" path="res://scripts/Startup.cs" id="1_oukrk"]
+[ext_resource type="Script" path="res://scripts/Startup.cs" id="1_rinsp"]
 
 [node name="Startup" type="Control"]
 layout_mode = 3
@@ -76,7 +76,7 @@ layout_mode = 2
 text = "Start"
 
 [node name="Startup" type="Node" parent="." node_paths=PackedStringArray("_errorLabel")]
-script = ExtResource("1_oukrk")
+script = ExtResource("1_rinsp")
 _errorLabel = NodePath("../VBoxContainer/ErrorLabel")
 
 [connection signal="text_changed" from="VBoxContainer/UsernameBox/UsernameInput" to="Startup" method="UsernameChanged"]

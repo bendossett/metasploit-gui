@@ -1,31 +1,31 @@
 [gd_scene load_steps=17 format=3 uid="uid://qsfevvuub1n0"]
 
-[ext_resource type="Script" path="res://addons/dockable_container/drag_n_drop_panel.gd" id="1_d063o"]
-[ext_resource type="Script" path="res://addons/dockable_container/dockable_container.gd" id="1_tmly6"]
-[ext_resource type="Script" path="res://addons/dockable_container/layout_panel.gd" id="2_ru18e"]
-[ext_resource type="Script" path="res://addons/dockable_container/layout_split.gd" id="3_qpkye"]
-[ext_resource type="Script" path="res://addons/dockable_container/layout.gd" id="4_vau4i"]
-[ext_resource type="Script" path="res://scripts/Targets.cs" id="5_pyg4d"]
-[ext_resource type="Script" path="res://scripts/MetasploitConnector.cs" id="6_1efve"]
-[ext_resource type="Script" path="res://scripts/Modules.cs" id="6_m53vy"]
-[ext_resource type="Script" path="res://scripts/CurrentModule.cs" id="8_xlaot"]
-[ext_resource type="Script" path="res://scripts/MetasploitAPI.cs" id="10_52kny"]
+[ext_resource type="Script" path="res://addons/dockable_container/dockable_container.gd" id="1_avawk"]
+[ext_resource type="Script" path="res://addons/dockable_container/layout_panel.gd" id="2_d4yqu"]
+[ext_resource type="Script" path="res://addons/dockable_container/layout_split.gd" id="3_vtvv8"]
+[ext_resource type="Script" path="res://addons/dockable_container/layout.gd" id="4_ounhx"]
+[ext_resource type="Script" path="res://scripts/Targets.cs" id="5_j715p"]
+[ext_resource type="Script" path="res://scripts/Modules.cs" id="6_ohlwn"]
+[ext_resource type="Script" path="res://addons/dockable_container/drag_n_drop_panel.gd" id="7_inwv8"]
+[ext_resource type="Script" path="res://scripts/CurrentModule.cs" id="8_vowv3"]
+[ext_resource type="Script" path="res://scripts/MetasploitConnector.cs" id="9_1bkfw"]
+[ext_resource type="Script" path="res://scripts/MetasploitAPI.cs" id="10_jtl75"]
 
 [sub_resource type="Resource" id="Resource_5xmop"]
 resource_name = "Tabs"
-script = ExtResource("2_ru18e")
+script = ExtResource("2_d4yqu")
 names = PackedStringArray("Modules")
 current_tab = 0
 
 [sub_resource type="Resource" id="Resource_vhbcx"]
 resource_name = "Tabs"
-script = ExtResource("2_ru18e")
+script = ExtResource("2_d4yqu")
 names = PackedStringArray("Current Module", "Targets")
 current_tab = 0
 
 [sub_resource type="Resource" id="Resource_du4a0"]
 resource_name = "Split"
-script = ExtResource("3_qpkye")
+script = ExtResource("3_vtvv8")
 direction = 0
 percent = 0.167808
 first = SubResource("Resource_5xmop")
@@ -33,13 +33,13 @@ second = SubResource("Resource_vhbcx")
 
 [sub_resource type="Resource" id="Resource_bieqn"]
 resource_name = "Tabs"
-script = ExtResource("2_ru18e")
+script = ExtResource("2_d4yqu")
 names = PackedStringArray("Services", "Processes")
 current_tab = 1
 
 [sub_resource type="Resource" id="Resource_5rtdc"]
 resource_name = "Split"
-script = ExtResource("3_qpkye")
+script = ExtResource("3_vtvv8")
 direction = 1
 percent = 0.5
 first = SubResource("Resource_du4a0")
@@ -47,7 +47,7 @@ second = SubResource("Resource_bieqn")
 
 [sub_resource type="Resource" id="Resource_78gtw"]
 resource_name = "Layout"
-script = ExtResource("4_vau4i")
+script = ExtResource("4_ounhx")
 root = SubResource("Resource_5rtdc")
 hidden_tabs = {}
 
@@ -80,17 +80,17 @@ content_scale_mode = 1
 [node name="DockableContainer" type="Container" parent="VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
-script = ExtResource("1_tmly6")
+script = ExtResource("1_avawk")
 layout = SubResource("Resource_78gtw")
 
 [node name="Targets" type="Control" parent="VBoxContainer/DockableContainer"]
 visible = false
 layout_mode = 2
-script = ExtResource("5_pyg4d")
+script = ExtResource("5_j715p")
 
 [node name="Modules" type="Control" parent="VBoxContainer/DockableContainer" node_paths=PackedStringArray("_currentModulePanel", "_tree")]
 layout_mode = 2
-script = ExtResource("6_m53vy")
+script = ExtResource("6_ohlwn")
 _currentModulePanel = NodePath("../Current Module")
 _tree = NodePath("VBoxContainer/Tree")
 
@@ -123,15 +123,15 @@ size_flags_vertical = 8
 [node name="Services" type="Control" parent="VBoxContainer/DockableContainer"]
 visible = false
 layout_mode = 2
-script = ExtResource("1_d063o")
+script = ExtResource("7_inwv8")
 
 [node name="Processes" type="Control" parent="VBoxContainer/DockableContainer"]
 layout_mode = 2
-script = ExtResource("1_d063o")
+script = ExtResource("7_inwv8")
 
 [node name="Current Module" type="Control" parent="VBoxContainer/DockableContainer" node_paths=PackedStringArray("_moduleName", "_moduleDesc", "_options", "_advancedOptions")]
 layout_mode = 2
-script = ExtResource("8_xlaot")
+script = ExtResource("8_vowv3")
 _moduleName = NodePath("MarginContainer/VBoxContainer/ModuleName")
 _moduleDesc = NodePath("MarginContainer/VBoxContainer/ModuleDescription")
 _options = NodePath("MarginContainer/VBoxContainer/ScrollContainer/Options/NormalOptions")
@@ -195,10 +195,10 @@ disabled = true
 text = "Exploit"
 
 [node name="MetasploitConnector" type="Node" parent="."]
-script = ExtResource("6_1efve")
+script = ExtResource("9_1bkfw")
 
 [node name="MetasploitAPI" type="Node" parent="."]
-script = ExtResource("10_52kny")
+script = ExtResource("10_jtl75")
 
 [connection signal="text_changed" from="VBoxContainer/DockableContainer/Modules/VBoxContainer/HBoxContainer/LineEdit" to="VBoxContainer/DockableContainer/Modules" method="Search"]
 [connection signal="pressed" from="VBoxContainer/DockableContainer/Current Module/MarginContainer/VBoxContainer/Button" to="VBoxContainer/DockableContainer/Current Module" method="Execute"]
