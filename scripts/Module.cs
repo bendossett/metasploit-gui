@@ -40,8 +40,10 @@ public class Module
         public bool HasDefault { get; internal set; }
         public T DefaultValue { get; private set; }
         public T Value { get; set; }
+        public bool ValueSet { get; set; }
+        public T[] Enums { get; private set; }
 
-        public Option(string name, string type, bool required, bool advanced, bool evasion, string desc)
+        public Option(string name, string type, bool required, bool advanced, bool evasion, string desc, T[] enums = default)
         {
             Name = name;
             Type = type;
@@ -51,9 +53,11 @@ public class Module
             Desc = desc;
             HasDefault = false;
             DefaultValue = default;
+            ValueSet = false;
             Value = default;
+            Enums = enums;
         }
-        public Option(string name, string type, bool required, bool advanced, bool evasion, string desc, T defaultValue = default, T value = default)
+        public Option(string name, string type, bool required, bool advanced, bool evasion, string desc, T defaultValue, T value, T[] enums = default)
         {
             Name = name;
             Type = type;
@@ -64,6 +68,8 @@ public class Module
             HasDefault = true;
             DefaultValue = defaultValue;
             Value = value;
+            ValueSet = true;
+            Enums = enums;
         }
     }
     
@@ -206,12 +212,22 @@ public class Module
                     }
                     break;
                 }
-                case "string" or "path" or "rhosts" or "port":
+                case "string" or "path" or "rhosts" or "address":
                 {
                     if (hasDefault)
                     {
-                        option = new Option<string>(key, typeString, required, advanced, evasion, desc, defaultValue as string,
-                            defaultValue as string);
+                        option = defaultValue switch
+                        {
+                            string defaultString => new Option<string>(key, typeString, required, advanced, evasion,
+                                desc, defaultString, defaultString),
+                            byte[] defaultBytes => new Option<string>(key, typeString, required, advanced, evasion,
+                                desc, defaultBytes.GetStringFromAscii(), defaultBytes.GetStringFromAscii()),
+                            _ => null
+                        };
+                        if (option == null)
+                        {
+                            GD.PrintErr(defaultValue.GetType());
+                        }
                     }
                     else
                     {
@@ -219,7 +235,7 @@ public class Module
                     }
                     break;
                 }
-                case "integer":
+                case "integer" or "port":
                 {
                     if (hasDefault)
                     {
@@ -247,11 +263,31 @@ public class Module
                     break;
                 }
                 case "enum":
-                    GD.Print("typestring was enum");
-                    option = null;
-                    foreach (object o in (object[])subOptions["enums"])
+                    if (subOptions.TryGetValue("enums", out object enumsObj))
                     {
-                        GD.Print(o.GetType());
+                        string[] enumOptions = Array.ConvertAll((object[])enumsObj, o => o switch
+                            {
+                                string s => s,
+                                byte[] b => b.GetStringFromAscii(),
+                                _ => o.ToString()
+                            }
+                        );
+                        
+                        if (hasDefault)
+                        {
+                            option = new Option<string>(key, typeString, required, advanced, evasion, desc,
+                                defaultValue as string, defaultValue as string, enumOptions);
+                        }
+                        else
+                        {
+                            option = new Option<string>(key, typeString, required, advanced, evasion, desc,
+                                enumOptions[0], enumOptions[0], enumOptions);
+                        }
+                    }
+                    else
+                    {
+                        GD.PrintErr("Typestring was \"enum\" but no enum options were provided.");
+                        option = null;
                     }
                     break;
                 default:

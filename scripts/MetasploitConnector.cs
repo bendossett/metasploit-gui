@@ -21,7 +21,9 @@ public partial class MetasploitConnector : Node
 	private static int _msfPort;
 	private static string _msfURI;
 	private static string _msfToken;
-	
+
+	private static readonly string[] Headers = new string[] { "Content-Type: binary/message-pack" };
+
 	public static async Task Connect(string username, string password, string msfHost = "127.0.0.1", int msfPort = 55553)
 	{
 		_msfHost = msfHost;
@@ -48,7 +50,7 @@ public partial class MetasploitConnector : Node
 
 	public static async Task<Dictionary<string, object>> RPCCall(string method, params object[] args)
 	{
-		if (String.IsNullOrEmpty(_msfHost))
+		if (string.IsNullOrEmpty(_msfHost))
 		{
 			throw new Exception("Host is required.");
 		}
@@ -58,7 +60,7 @@ public partial class MetasploitConnector : Node
 			throw new Exception("Not authenticated");
 		}
 
-		if (String.IsNullOrEmpty(method))
+		if (string.IsNullOrEmpty(method))
 		{
 			throw new Exception("Method is required.");
 		}
@@ -89,19 +91,11 @@ public partial class MetasploitConnector : Node
 			message.Add(_msfToken);
 		}
 
-		foreach (object arg in args)
-		{
-			message.Add(arg);
-		}
-		
+		message.AddRange(args);
+
 		byte[] messageBin = MessagePackSerializer.Serialize(message);
 
-		var json = MessagePackSerializer.ConvertToJson(messageBin);
-		GD.Print(json);
-
-		string[] headers = { "Content-Type: binary/message-pack" };
-
-		httpRequest.RequestRaw(_msfURI, headers, HttpClient.Method.Post, messageBin);
+		httpRequest.RequestRaw(_msfURI, Headers, HttpClient.Method.Post, messageBin);
 
 		return await tcs.Task;
 	}
@@ -113,7 +107,6 @@ public partial class MetasploitConnector : Node
 			throw new Exception("Request failed.");
 		}
 
-		//GD.Print(MessagePackSerializer.ConvertToJson(body.ToArray()));
 		Dictionary<object, object> responseDict = MessagePackSerializer.Deserialize<Dictionary<object, object>>(body.ToArray());
 
 		tcs.SetResult(ConvertDict(responseDict));

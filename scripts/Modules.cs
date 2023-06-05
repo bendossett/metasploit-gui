@@ -95,10 +95,10 @@ public partial class Modules : Node
 		
 		ClearTree();
 		
-		string[] filteredExploitStrings = _exploitStrings.Where(s => s.Contains(searchTerm)).ToArray();
-		string[] filteredAuxiliaryStrings = _auxiliaryStrings.Where(s => s.Contains(searchTerm)).ToArray();
-		string[] filteredPostStrings = _postStrings.Where(s => s.Contains(searchTerm)).ToArray();
-		string[] filteredPayloadStrings = _payloadStrings.Where(s => s.Contains(searchTerm)).ToArray();
+		string[] filteredExploitStrings = _exploitStrings?.Where(s => s.Contains(searchTerm)).ToArray();
+		string[] filteredAuxiliaryStrings = _auxiliaryStrings?.Where(s => s.Contains(searchTerm)).ToArray();
+		string[] filteredPostStrings = _postStrings?.Where(s => s.Contains(searchTerm)).ToArray();
+		string[] filteredPayloadStrings = _payloadStrings?.Where(s => s.Contains(searchTerm)).ToArray();
 
 		InitTreeSection(filteredExploitStrings, "Exploits", "exploit", false);
 		InitTreeSection(filteredAuxiliaryStrings, "Auxiliary", "auxiliary", false);

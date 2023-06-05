@@ -34,3 +34,7 @@ project/assembly_name="metasploit-gui"
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/dockable_container/plugin.cfg")
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"

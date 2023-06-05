@@ -1,5 +1,6 @@
-[gd_scene load_steps=17 format=3 uid="uid://qsfevvuub1n0"]
+[gd_scene load_steps=19 format=3 uid="uid://qsfevvuub1n0"]
 
+[ext_resource type="Script" path="res://scripts/MenuBar.cs" id="1_3ymi1"]
 [ext_resource type="Script" path="res://addons/dockable_container/drag_n_drop_panel.gd" id="1_d063o"]
 [ext_resource type="Script" path="res://addons/dockable_container/dockable_container.gd" id="1_tmly6"]
 [ext_resource type="Script" path="res://addons/dockable_container/layout_panel.gd" id="2_ru18e"]
@@ -9,6 +10,7 @@
 [ext_resource type="Script" path="res://scripts/MetasploitConnector.cs" id="6_1efve"]
 [ext_resource type="Script" path="res://scripts/Modules.cs" id="6_m53vy"]
 [ext_resource type="Script" path="res://scripts/CurrentModule.cs" id="8_xlaot"]
+[ext_resource type="Script" path="res://scripts/Jobs.cs" id="9_18wui"]
 [ext_resource type="Script" path="res://scripts/MetasploitAPI.cs" id="10_52kny"]
 
 [sub_resource type="Resource" id="Resource_5xmop"]
@@ -34,14 +36,14 @@ second = SubResource("Resource_vhbcx")
 [sub_resource type="Resource" id="Resource_bieqn"]
 resource_name = "Tabs"
 script = ExtResource("2_ru18e")
-names = PackedStringArray("Services", "Processes")
-current_tab = 1
+names = PackedStringArray("Services", "Processes", "Jobs")
+current_tab = 2
 
 [sub_resource type="Resource" id="Resource_5rtdc"]
 resource_name = "Split"
 script = ExtResource("3_qpkye")
 direction = 1
-percent = 0.5
+percent = 0.652344
 first = SubResource("Resource_du4a0")
 second = SubResource("Resource_bieqn")
 
@@ -63,8 +65,11 @@ size_flags_vertical = 3
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 2
 
-[node name="MenuBar" type="MenuBar" parent="VBoxContainer"]
+[node name="MenuBar" type="MenuBar" parent="VBoxContainer" node_paths=PackedStringArray("_tabs", "_dockableContainer")]
 layout_mode = 2
+script = ExtResource("1_3ymi1")
+_tabs = NodePath("Tabs")
+_dockableContainer = NodePath("../DockableContainer")
 
 [node name="File" type="PopupMenu" parent="VBoxContainer/MenuBar"]
 content_scale_mode = 1
@@ -74,7 +79,7 @@ item_0/id = 0
 item_1/text = "Test2"
 item_1/id = 1
 
-[node name="Actions" type="PopupMenu" parent="VBoxContainer/MenuBar"]
+[node name="Tabs" type="PopupMenu" parent="VBoxContainer/MenuBar"]
 content_scale_mode = 1
 
 [node name="DockableContainer" type="Container" parent="VBoxContainer"]
@@ -126,16 +131,19 @@ layout_mode = 2
 script = ExtResource("1_d063o")
 
 [node name="Processes" type="Control" parent="VBoxContainer/DockableContainer"]
+visible = false
 layout_mode = 2
 script = ExtResource("1_d063o")
 
-[node name="Current Module" type="Control" parent="VBoxContainer/DockableContainer" node_paths=PackedStringArray("_moduleName", "_moduleDesc", "_options", "_advancedOptions")]
+[node name="Current Module" type="Control" parent="VBoxContainer/DockableContainer" node_paths=PackedStringArray("_moduleName", "_moduleDesc", "_options", "_advancedOptions", "_exploitButton", "_payloadOptionButton")]
 layout_mode = 2
 script = ExtResource("8_xlaot")
 _moduleName = NodePath("MarginContainer/VBoxContainer/ModuleName")
 _moduleDesc = NodePath("MarginContainer/VBoxContainer/ModuleDescription")
 _options = NodePath("MarginContainer/VBoxContainer/ScrollContainer/Options/NormalOptions")
 _advancedOptions = NodePath("MarginContainer/VBoxContainer/ScrollContainer/Options/AdvancedOptions")
+_exploitButton = NodePath("MarginContainer/VBoxContainer/Button")
+_payloadOptionButton = NodePath("MarginContainer/VBoxContainer/HBoxContainer/Payloads")
 
 [node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/DockableContainer/Current Module"]
 layout_mode = 1
@@ -156,8 +164,15 @@ theme_override_constants/separation = 15
 [node name="ModuleName" type="Label" parent="VBoxContainer/DockableContainer/Current Module/MarginContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="ModuleDescription" type="Label" parent="VBoxContainer/DockableContainer/Current Module/MarginContainer/VBoxContainer"]
+[node name="ModuleDescription" type="TextEdit" parent="VBoxContainer/DockableContainer/Current Module/MarginContainer/VBoxContainer"]
 layout_mode = 2
+editable = false
+context_menu_enabled = false
+shortcut_keys_enabled = false
+virtual_keyboard_enabled = false
+middle_mouse_paste_enabled = false
+wrap_mode = 1
+scroll_fit_content_height = true
 
 [node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer/DockableContainer/Current Module/MarginContainer/VBoxContainer"]
 layout_mode = 2
@@ -193,6 +208,10 @@ layout_mode = 2
 size_flags_horizontal = 4
 disabled = true
 text = "Exploit"
+
+[node name="Jobs" type="Control" parent="VBoxContainer/DockableContainer"]
+layout_mode = 2
+script = ExtResource("9_18wui")
 
 [node name="MetasploitConnector" type="Node" parent="."]
 script = ExtResource("6_1efve")
